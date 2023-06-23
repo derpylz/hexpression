@@ -31,6 +31,8 @@ bm <- LoadData("bmcite")
 bm <- RunUMAP(bm, nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_", return.model = TRUE)
 # Plot expression of TRDC
 HexPlot(bm, "TRDC", bins = 200, reduction = "wnn.umap")
+# Plot expression split by cell type
+HexPlot(bm, "TRDC", bins = 200, reduction = "wnn.umap", split.by = "celltype.l1")
 ```
 
 ## License

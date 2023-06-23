@@ -26,7 +26,7 @@ HexPlot(
 
 \item{dims}{Dimensions to plot}
 
-\item{aggr.fun}{Aggregation function}
+\item{aggr.fun}{Aggregation function (e.g. mean, median)}
 
 \item{color.scale}{Color scale}
 

@@ -1,3 +1,14 @@
+#' @title Minimal hex plot from a data frame
+#' @description Plot a hex bin plot from a data frame. Good starting point for
+#' customizing the plot.
+#' @param df Data frame with three columns, the first two are the coordinates
+#' and the third is the expression
+#' @param bins Number of hex bins
+#' @param hex_cut Quantiles to use for the color scale
+#' @param aggr_fun Aggregation function (e.g. mean, median)
+#' @param colorscale Color scale
+#' @return A ggplot2 object
+#' @export
 plot_hex_minimal <- function(
     df,
     bins = 200,
@@ -29,8 +40,19 @@ plot_hex_minimal <- function(
   return(p)
 }
 
-
-
+#' @title Hex plot from a data frame
+#' @description Plot a hex bin plot from a data frame with some default
+#' parameters for a nice looking plot, when not using a Seurat object.
+#' @param df Data frame with three columns, the first two are the coordinates
+#' and the third is the expression
+#' @param bins Number of hex bins
+#' @param hex_cut Quantiles to use for the color scale
+#' @param aggr_fun Aggregation function (e.g. mean, median)
+#' @param colorscale Color scale
+#' @param color_label Color scale label
+#' @param axis_labels Axis labels
+#' @return A ggplot2 object
+#' @export
 plot_hex <- function(
     df,
     bins = 200,
@@ -43,7 +65,7 @@ plot_hex <- function(
     ggplot2::theme_classic() +
     ggplot2::xlab(axis_labels[1]) +
     ggplot2::ylab(axis_labels[2]) +
-    ggplot2::guides(fill=ggplot2::guide_legend(title = color_label)) +
+    ggplot2::labs(fill = color_label) +
     ggplot2::coord_fixed()
   return(p)
 }
@@ -53,7 +75,7 @@ plot_hex <- function(
 #' @param srt Seurat object
 #' @param feature Feature to plot
 #' @param dims Dimensions to plot
-#' @param aggr.fun Aggregation function
+#' @param aggr.fun Aggregation function (e.g. mean, median)
 #' @param color.scale Color scale
 #' @param bins Number of hex bins
 #' @param min.cutoff Minimum expression cutoff
@@ -84,7 +106,10 @@ HexPlot <- function(
   if (length(dims) != 2) {
     stop("dims must be a vector of length 2")
   }
+  coordinates <- Seurat::Embeddings(srt, reduction)[, dims]
   if (!is.null(split.by)) {
+    xlimits <- range(coordinates[, 1])
+    ylimits <- range(coordinates[, 2])
     srt_list <- Seurat::SplitObject(srt, split.by)
     plot_list <- lapply(srt_list, function(srt) {
       p <- HexPlot(
@@ -92,7 +117,10 @@ HexPlot <- function(
         min.cutoff, max.cutoff, reduction, NULL, slot, coord.fixed
       )
       p <- p +
-        ggplot2::theme(legend.position = "none")
+        ggplot2::ggtitle(unique(srt[[split.by]])) +
+        ggplot2::theme(legend.position = "none") +
+        ggplot2::xlim(floor(xlimits[1]), ceiling(xlimits[2])) +
+        ggplot2::ylim(floor(ylimits[1]), ceiling(ylimits[2]))
       return(p)
     })
     return(
@@ -100,7 +128,6 @@ HexPlot <- function(
         patchwork::plot_annotation(title = feature)
     )
   }
-  coordinates <- Seurat::Embeddings(srt, reduction)[, dims]
   exprs <- Seurat::FetchData(srt, feature, slot = slot)[[feature]]
   df <- data.frame(coordinates, exprs)
   p <- plot_hex_minimal(
