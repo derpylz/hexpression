@@ -3,3 +3,4 @@
 export(HexPlot)
 export(plot_hex)
 export(plot_hex_minimal)
+importFrom(rlang,.data)

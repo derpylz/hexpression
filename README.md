@@ -1,6 +1,6 @@
 # Hex Plots for Single Cell Expression Data
 
-Simple functions to create ggplot2 plots to visualize single cell expression data in 2D dimensionality reductions to avoid overplotting. Inspired by the [ggHex](https://www.rdocumentation.org/packages/ArchR/versions/1.0.1/topics/ggHex) function in [ArchR](https://www.archrproject.com/). Includes a wrapper for Seurat objects that is almost a drop-in replacement for FeaturePlot (for single features only for now). Mainly created for convenience and personal use, but feel free to use it if you find it useful.
+Simple functions to create ggplot2 plots to visualize single cell expression data in 2D dimensionality reductions to avoid overplotting. Inspired by the [ggHex](https://www.rdocumentation.org/packages/ArchR/versions/1.0.1/topics/ggHex) function in [ArchR](https://www.archrproject.com/). Includes a wrapper for Seurat objects that is almost a drop-in replacement for FeaturePlot. Mainly created for convenience and personal use, but feel free to use it if you find it useful.
 
 ## Motivation
 
@@ -30,9 +30,13 @@ bm <- LoadData("bmcite")
 # Run dimensionality reduction
 bm <- RunUMAP(bm, nn.name = "weighted.nn", reduction.name = "wnn.umap", reduction.key = "wnnUMAP_", return.model = TRUE)
 # Plot expression of TRDC
-HexPlot(bm, "TRDC", bins = 200, reduction = "wnn.umap")
+HexPlot(bm, "TRDC", reduction = "wnn.umap")
 # Plot expression split by cell type
-HexPlot(bm, "TRDC", bins = 200, reduction = "wnn.umap", split.by = "celltype.l1")
+HexPlot(bm, "TRDC", reduction = "wnn.umap", split.by = "celltype.l1")
+# Plot multiple genes
+HexPlot(bm, c("TRDC", "AVP"), reduction = "wnn.umap")
+# Plot multiple genes split by cell type
+HexPlot(bm, c("TRDC", "AVP"), reduction = "wnn.umap", split.by = "celltype.l1")
 ```
 
 ## License

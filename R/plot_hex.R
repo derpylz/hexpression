@@ -15,11 +15,12 @@ plot_hex_minimal <- function(
     hex_cut = c(0.02, 0.98),
     aggr_fun = "mean",
     colorscale = rev(viridis::inferno(256))) {
+  dfnames <- colnames(df)
   values <- ggplot2::ggplot_build(
     ggplot2::ggplot() +
       ggplot2::stat_summary_hex(
         data = df,
-        ggplot2::aes(x = df[[1]], y = df[[2]], z = df[[3]]),
+        ggplot2::aes(x = .data[[dfnames[1]]], y = .data[[dfnames[2]]], z = .data[[dfnames[3]]]),
         fun = "mean",
         bins = bins,
         color = NA
@@ -30,7 +31,8 @@ plot_hex_minimal <- function(
       na.rm = TRUE
     )
   }
-  p <- ggplot2::ggplot(df, ggplot2::aes(x = df[[1]], y = df[[2]], z = df[[3]])) +
+  p <- ggplot2::ggplot(
+    df, ggplot2::aes(x = .data[[dfnames[1]]], y = .data[[dfnames[2]]], z = .data[[dfnames[3]]])) +
     ggplot2::stat_summary_hex(fun = "mean", bins = bins, color = NA) +
     ggplot2::scale_fill_gradientn(
       colors = colorscale,
@@ -73,7 +75,8 @@ plot_hex <- function(
 #' @title HexPlot
 #' @description Plot a hex bin plot of a feature in a Seurat object
 #' @param srt Seurat object
-#' @param feature Feature to plot
+#' @param features Feature(s) to plot. Either a single feature or a vector of
+#' features
 #' @param dims Dimensions to plot
 #' @param aggr.fun Aggregation function (e.g. mean, median)
 #' @param color.scale Color scale
@@ -85,17 +88,21 @@ plot_hex <- function(
 #' pass 'ident' to split by cell identity'. Used by Seurat::SplitObject
 #' @param slot Which slot to use for the feature expression
 #' @param coord.fixed Whether to use a fixed aspect ratio
+#' @param combine Whether to combine the plots into a single plot using
+#' patchwork or return a list of plots. Only applies when split.by is not NULL
+#' or features is a vector of length > 1
 #' @return A ggplot2 object if split.by is NULL, otherwise a patchwork object
 #' @export
+#' @importFrom rlang .data
 #' @examples
 #' library(Seurat)
 #' srt <- pbmc_small
 #' HexPlot(srt, "CD3D", reduction = "tsne")
 HexPlot <- function(
-    srt, feature, dims = c(1, 2), aggr.fun = "mean",
+    srt, features, dims = c(1, 2), aggr.fun = "mean",
     color.scale = rev(viridis::inferno(256)), bins = 200,
     min.cutoff = NA, max.cutoff = NA, reduction = "umap",
-    split.by = NULL, slot = "data", coord.fixed = FALSE) {
+    split.by = NULL, slot = "data", coord.fixed = FALSE, combine = TRUE) {
   # Check if Seurat is installed, if not, warn the user and exit
   if (!requireNamespace("Seurat", quietly = TRUE)) {
     stop(
@@ -113,9 +120,20 @@ HexPlot <- function(
     srt_list <- Seurat::SplitObject(srt, split.by)
     plot_list <- lapply(srt_list, function(srt) {
       p <- HexPlot(
-        srt, feature, dims, aggr.fun, color.scale, bins,
-        min.cutoff, max.cutoff, reduction, NULL, slot, coord.fixed
+        srt, features, dims, aggr.fun, color.scale, bins,
+        min.cutoff, max.cutoff, reduction, NULL, slot, coord.fixed, FALSE
       )
+      if (length(features) > 1) {
+        p <- lapply(p, function(p_i) {
+          p_i <- p_i +
+            ggplot2::labs(subtitle = unique(srt[[split.by]])) +
+            ggplot2::theme(legend.position = "none") +
+            ggplot2::xlim(floor(xlimits[1]), ceiling(xlimits[2])) +
+            ggplot2::ylim(floor(ylimits[1]), ceiling(ylimits[2]))
+          return(p_i)
+        })
+        return(p)
+      }
       p <- p +
         ggplot2::ggtitle(unique(srt[[split.by]])) +
         ggplot2::theme(legend.position = "none") +
@@ -123,12 +141,45 @@ HexPlot <- function(
         ggplot2::ylim(floor(ylimits[1]), ceiling(ylimits[2]))
       return(p)
     })
-    return(
-      patchwork::wrap_plots(plot_list) +
-        patchwork::plot_annotation(title = feature)
-    )
+    if (length(features) > 1) {
+      plot_list <- unlist(plot_list, recursive = FALSE)
+    }
+    if (combine) {
+      if (length(features) > 1) {
+        return(
+          patchwork::wrap_plots(plot_list, ncol = length(srt_list), byrow = F) +
+            patchwork::plot_annotation(title = split.by)
+        )
+      } else {
+        return(
+          patchwork::wrap_plots(plot_list) +
+            patchwork::plot_annotation(title = features)
+        )
+      }
+    } else {
+      return(plot_list)
+    }
   }
-  exprs <- Seurat::FetchData(srt, feature, slot = slot)[[feature]]
+  if (length(features) > 1) {
+    plot_list <- lapply(features, function(feature) {
+      p <- HexPlot(
+        srt, feature, dims, aggr.fun, color.scale, bins,
+        min.cutoff, max.cutoff, reduction, NULL, slot, coord.fixed, FALSE
+      )
+      p <- p +
+        ggplot2::ggtitle(feature) +
+        ggplot2::theme(legend.position = "none")
+      return(p)
+    })
+    if (combine) {
+      return(
+        patchwork::wrap_plots(plot_list)
+      )
+    } else {
+      return(plot_list)
+    }
+  }
+  exprs <- Seurat::FetchData(srt, features, slot = slot)[[features]]
   df <- data.frame(coordinates, exprs)
   p <- plot_hex_minimal(
     df,
@@ -141,6 +192,6 @@ HexPlot <- function(
     ggplot2::labs(fill = "") +
     ggplot2::xlab(colnames(coordinates)[1]) +
     ggplot2::ylab(colnames(coordinates)[2]) +
-    ggplot2::ggtitle(feature)
+    ggplot2::ggtitle(features)
   return(p)
 }

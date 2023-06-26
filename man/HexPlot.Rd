@@ -6,7 +6,7 @@
 \usage{
 HexPlot(
   srt,
-  feature,
+  features,
   dims = c(1, 2),
   aggr.fun = "mean",
   color.scale = rev(viridis::inferno(256)),
@@ -16,13 +16,15 @@ HexPlot(
   reduction = "umap",
   split.by = NULL,
   slot = "data",
-  coord.fixed = FALSE
+  coord.fixed = FALSE,
+  combine = TRUE
 )
 }
 \arguments{
 \item{srt}{Seurat object}
 
-\item{feature}{Feature to plot}
+\item{features}{Feature(s) to plot. Either a single feature or a vector of
+features}
 
 \item{dims}{Dimensions to plot}
 
@@ -44,6 +46,10 @@ pass 'ident' to split by cell identity'. Used by Seurat::SplitObject}
 \item{slot}{Which slot to use for the feature expression}
 
 \item{coord.fixed}{Whether to use a fixed aspect ratio}
+
+\item{combine}{Whether to combine the plots into a single plot using
+patchwork or return a list of plots. Only applies when split.by is not NULL
+or features is a vector of length > 1}
 }
 \value{
 A ggplot2 object if split.by is NULL, otherwise a patchwork object

@@ -5,14 +5,16 @@ Version: 1.0.0
 Author: Nils Trost
 Maintainer: Nils Trost <nils@explanationmark.de>
 Description: Simple functions to create ggplot2 plots to visualize single cell expression data in 2D dimensionality reductions to avoid overplotting. Inspired by the ggHex function in ArchR. Includes a wrapper for Seurat objects.
-License: Apache License (== 2.0)
+License: Apache License (== 2.0) | file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
     ggplot2,
+    hexbin,
     patchwork,
+    rlang,
     scales,
-    stats
+    stats,
 Suggests:
     Seurat
 RoxygenNote: 7.2.3
