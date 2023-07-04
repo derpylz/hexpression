@@ -126,7 +126,7 @@ HexPlot <- function(
       if (length(features) > 1) {
         p <- lapply(p, function(p_i) {
           p_i <- p_i +
-            ggplot2::labs(subtitle = as.character(unique(srt[[split.by]]))) +
+            ggplot2::labs(subtitle = as.character(unique(srt@meta.data[[split.by]]))) +
             ggplot2::theme(legend.position = "none") +
             ggplot2::xlim(floor(xlimits[1]), ceiling(xlimits[2])) +
             ggplot2::ylim(floor(ylimits[1]), ceiling(ylimits[2]))
@@ -135,7 +135,7 @@ HexPlot <- function(
         return(p)
       }
       p <- p +
-        ggplot2::ggtitle(as.character(unique(srt[[split.by]]))) +
+        ggplot2::ggtitle(as.character(unique(srt@meta.data[[split.by]]))) +
         ggplot2::theme(legend.position = "none") +
         ggplot2::xlim(floor(xlimits[1]), ceiling(xlimits[2])) +
         ggplot2::ylim(floor(ylimits[1]), ceiling(ylimits[2]))
