@@ -1,7 +1,7 @@
 Package: hexpression
 Type: Package
 Title: Hex Plots for Single Cell Expression Data
-Version: 1.0.0
+Version: 1.0.1
 Author: Nils Trost
 Maintainer: Nils Trost <nils@explanationmark.de>
 Description: Simple functions to create ggplot2 plots to visualize single cell expression data in 2D dimensionality reductions to avoid overplotting. Inspired by the ggHex function in ArchR. Includes a wrapper for Seurat objects.
@@ -16,5 +16,6 @@ Imports:
     scales,
     stats,
 Suggests:
-    Seurat
-RoxygenNote: 7.2.3
+    Seurat,
+    viridis
+RoxygenNote: 7.3.2
