@@ -33,7 +33,7 @@ plot_hex_minimal <- function(
   }
   p <- ggplot2::ggplot(
     df, ggplot2::aes(x = .data[[dfnames[1]]], y = .data[[dfnames[2]]], z = .data[[dfnames[3]]])) +
-    ggplot2::stat_summary_hex(fun = "mean", bins = bins, color = NA) +
+    ggplot2::stat_summary_hex(fun = "mean", bins = bins) +
     ggplot2::scale_fill_gradientn(
       colors = colorscale,
       limits = limits,
@@ -86,7 +86,8 @@ plot_hex <- function(
 #' @param reduction Which dimensionality reduction to use
 #' @param split.by A factor in object metadata to split the feature plot by,
 #' pass 'ident' to split by cell identity'. Used by Seurat::SplitObject
-#' @param slot Which slot to use for the feature expression
+#' @param layer Which layer to use for the feature expression
+#' @param assay Which assay to use for the feature expression
 #' @param coord.fixed Whether to use a fixed aspect ratio
 #' @param combine Whether to combine the plots into a single plot using
 #' patchwork or return a list of plots. Only applies when split.by is not NULL
@@ -102,7 +103,9 @@ HexPlot <- function(
     srt, features, dims = c(1, 2), aggr.fun = "mean",
     color.scale = rev(viridis::inferno(256)), bins = 200,
     min.cutoff = NA, max.cutoff = NA, reduction = "umap",
-    split.by = NULL, slot = "data", coord.fixed = FALSE, combine = TRUE) {
+    split.by = NULL, layer = NULL, assay = NULL,
+    coord.fixed = FALSE, combine = TRUE
+) {
   # Check if Seurat is installed, if not, warn the user and exit
   if (!requireNamespace("Seurat", quietly = TRUE)) {
     stop(
@@ -121,12 +124,15 @@ HexPlot <- function(
     plot_list <- lapply(srt_list, function(srt) {
       p <- HexPlot(
         srt, features, dims, aggr.fun, color.scale, bins,
-        min.cutoff, max.cutoff, reduction, NULL, slot, coord.fixed, FALSE
+        min.cutoff, max.cutoff, reduction, NULL, layer, assay, coord.fixed,
+        FALSE
       )
       if (length(features) > 1) {
         p <- lapply(p, function(p_i) {
           p_i <- p_i +
-            ggplot2::labs(subtitle = as.character(unique(srt@meta.data[[split.by]]))) +
+            ggplot2::labs(
+              subtitle = as.character(unique(srt@meta.data[[split.by]]))
+            ) +
             ggplot2::xlim(floor(xlimits[1]), ceiling(xlimits[2])) +
             ggplot2::ylim(floor(ylimits[1]), ceiling(ylimits[2]))
           return(p_i)
@@ -162,7 +168,8 @@ HexPlot <- function(
     plot_list <- lapply(features, function(feature) {
       p <- HexPlot(
         srt, feature, dims, aggr.fun, color.scale, bins,
-        min.cutoff, max.cutoff, reduction, NULL, slot, coord.fixed, FALSE
+        min.cutoff, max.cutoff, reduction, NULL, layer, assay, coord.fixed,
+        FALSE
       )
       p <- p +
         ggplot2::ggtitle(feature)
@@ -176,7 +183,9 @@ HexPlot <- function(
       return(plot_list)
     }
   }
-  exprs <- Seurat::FetchData(srt, features, slot = slot)[[features]]
+  exprs <- Seurat::FetchData(
+    srt, features, layer = layer, assay = assay
+  )[[features]]
   df <- data.frame(coordinates, exprs)
   p <- plot_hex_minimal(
     df,

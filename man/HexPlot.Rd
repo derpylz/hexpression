@@ -15,7 +15,8 @@ HexPlot(
   max.cutoff = NA,
   reduction = "umap",
   split.by = NULL,
-  slot = "data",
+  layer = NULL,
+  assay = NULL,
   coord.fixed = FALSE,
   combine = TRUE
 )
@@ -43,7 +44,9 @@ features}
 \item{split.by}{A factor in object metadata to split the feature plot by,
 pass 'ident' to split by cell identity'. Used by Seurat::SplitObject}
 
-\item{slot}{Which slot to use for the feature expression}
+\item{layer}{Which layer to use for the feature expression}
+
+\item{assay}{Which assay to use for the feature expression}
 
 \item{coord.fixed}{Whether to use a fixed aspect ratio}
 
